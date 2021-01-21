@@ -102,8 +102,7 @@ The code *almost* complies with RFC 1951, with the following exceptions.
 ## Requirements
 
 RAM usage excludes the space needed for input and output buffer. Numbers
-rounded up to the next multiple of 64B for ROM and 16B for RAM to account
-for variations in compiler optimizations.
+rounded up to the next multiple of 16B.
 
 | Architecture | ROM | RAM
 | :--- | ---: | ---: |
