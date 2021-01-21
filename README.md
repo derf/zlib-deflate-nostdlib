@@ -11,12 +11,17 @@ for speed. Right now, the implementation is naive, but usable. See below for
 the current status and TODOs. Be aware that this library has not been
 extensively tested yet.
 
+Note: This library *inflates* (i.e., decompresses) data. The source files and
+API are named as such, as is the corresponding function in the original zlib
+implementation. However, as the algorithm is called *deflate*, the project is
+named zlib-*deflate*-nostdlib even though it does not support compression.
+
 ## Usage
 
-Embed `deflate.c` and `deflate.h` into your project. You can rename `deflate.c`
-to `deflate.cc` and/or compile it with g++ instead of gcc, if you like. Use
-`deflate_zlib(input, input_len, output, output_len)` to decompress zlib data,
-and `deflate(input, input_len, output, output_len)` to decompress deflate data
+Embed `inflate.c` and `inflate.h` into your project. You can rename `inflate.c`
+to `inflate.cc` and/or compile it with g++ instead of gcc, if you like. Use
+`inflate_zlib(input, input_len, output, output_len)` to decompress zlib data,
+and `inflate(input, input_len, output, output_len)` to decompress deflate data
 without zlib header.
 
 input and output must be `unsigned char *`, input\_len and output\_len are
@@ -26,24 +31,24 @@ bytes written to `output`, or a negative value on error.
 Example for zlib decompression (RFC 1950):
 
 ```
-#include "deflate.h"
+#include "inflate.h"
 
-unsigned char deflate_input[] = { /* some compressed data, e.g.: */
+unsigned char inflate_input[] = { /* some compressed data, e.g.: */
     120, 156, 243, 72, 205, 201, 201, 215, 81, 8, 207, 47, 202, 73, 177, 87,
     240, 64, 226, 41, 2, 0, 128, 125, 9, 17
 };
 
-unsigned char deflate_output[128];
+unsigned char inflate_output[128];
 
 // within some function
 {
-    int16_t out_bytes = deflate_zlib(deflate_input, sizeof(deflate_input),
-                                     deflate_output, sizeof(deflate_output));
+    int16_t out_bytes = inflate_zlib(inflate_input, sizeof(inflate_input),
+                                     inflate_output, sizeof(inflate_output));
     if (out_bytes < 0) {
         // error
     } else {
-        // success. deflate_output contains "Hello, World? Hello, World!"
-        // out_bytes contains the number of bytes written to deflate_output
+        // success. inflate_output contains "Hello, World? Hello, World!"
+        // out_bytes contains the number of bytes written to inflate_output
     }
 }
 
@@ -52,24 +57,24 @@ unsigned char deflate_output[128];
 Decompressing deflate (RFC 1951) data works as follows:
 
 ```
-#include "deflate.h"
+#include "inflate.h"
 
-unsigned char deflate_input[] = { /* some compressed data, e.g.: */
+unsigned char inflate_input[] = { /* some compressed data, e.g.: */
     243, 72, 205, 201, 201, 215, 81, 8, 207, 47, 202, 73, 177, 87,
     240, 64, 226, 41, 2, 0
 };
 
-unsigned char deflate_output[128];
+unsigned char inflate_output[128];
 
 // within some function
 {
-    int16_t out_bytes = deflate(deflate_input, sizeof(deflate_input),
-                                deflate_output, sizeof(deflate_output));
+    int16_t out_bytes = inflate(inflate_input, sizeof(inflate_input),
+                                inflate_output, sizeof(inflate_output));
     if (out_bytes < 0) {
         // error
     } else {
-        // success. deflate_output contains "Hello, World? Hello, World!"
-        // out_bytes contains the number of bytes written to deflate_output
+        // success. inflate_output contains "Hello, World? Hello, World!"
+        // out_bytes contains the number of bytes written to inflate_output
     }
 }
 
@@ -78,7 +83,7 @@ unsigned char deflate_output[128];
 ## Compilation flags
 
 Compile with `-DDEFLATE_CHECKSUM` to enable verification of the zlib ADLER32
-checksum in `deflate_zlib`.
+checksum in `inflate_zlib`.
 
 ## Compliance
 
