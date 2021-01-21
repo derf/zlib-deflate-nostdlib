@@ -252,7 +252,7 @@ static int8_t deflate_huffman(uint8_t * ll_lengths, uint16_t ll_size,
 					return DEFLATE_ERR_OUTPUT_LENGTH;
 				}
 				deflate_output_now[0] =
-				    deflate_output_now[-dist_val];
+				    *(deflate_output_now - dist_val);
 				deflate_output_now++;
 			}
 		}
