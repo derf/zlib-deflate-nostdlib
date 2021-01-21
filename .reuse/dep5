@@ -1,0 +1,5 @@
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+
+Files: README.md
+Copyright: 2021 Daniel Friesel
+License: CC0-1.0
