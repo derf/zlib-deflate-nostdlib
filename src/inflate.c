@@ -6,7 +6,7 @@
  * SPDX-License-Identifier: BSD-2-Clause
  */
 
-#include "lib/inflate.h"
+#include "inflate.h"
 
 /*
  * The compressed (inflated) input data.
