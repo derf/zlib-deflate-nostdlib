@@ -104,14 +104,16 @@ The code *almost* complies with RFC 1951, with the following exceptions.
 * zlib-deflate-nostdlib does not yet support compressed items consisting of
   more than one deflate block. I intend to fix this.
 
-## Requirements
+## Requirements and Performance
 
-RAM usage excludes the space needed for input and output buffer. Numbers
-rounded up to the next multiple of 16B.
+RAM usage excludes the space needed for input and output buffer. ROM/RAM usage
+rounded up to the next multiple of 16B. Performance tested with text files of
+various sizes, minimum file size 500 bytes, maximum file size determined by the
+amount of available RAM.
 
-| Architecture | ROM | RAM
-| :--- | ---: | ---: |
-| 8-bit ATMega328P | 1584 B | 624 B |
-| 16-bit MSP430FR5994 | 2304 B | 432 B |
-| 20-bit MSP430FR5994 | 2608 B | 432 B |
-| 32-bit STM32F446RE (ARM Cortex M3) | 1744 B | 432 B |
+| Architecture | ROM | RAM | Speed
+| :--- | ---: | ---: | ---: |
+| 8-bit ATMega328P @ 16 MHz | 1440 B | 624 B | 10 .. 22 kB/s |
+| 16-bit MSP430FR5994 @ 16 MHz | 2224 B | 432 B | 8 .. 16 kB/s |
+| 20-bit MSP430FR5994 @ 16 MHz | 2512 B | 432 B | 8 .. 16 kB/s |
+| 32-bit STM32F446RE (ARM Cortex M3) @ 168 MHz | 1552 B | 432 B | 258 .. 898 kB/s |
