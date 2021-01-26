@@ -132,7 +132,7 @@ static uint16_t deflate_rev_word(uint16_t word, uint8_t bits)
 	return ret;
 }
 
-static uint8_t deflate_bitmask(uint8_t bit_count)
+static uint16_t deflate_bitmask(uint8_t bit_count)
 {
 	return (1 << bit_count) - 1;
 }
