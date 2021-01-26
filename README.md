@@ -95,12 +95,6 @@ following exceptions.
 
 The code *almost* complies with RFC 1951, with the following exceptions.
 
-* zlib-deflate-nostdlib assumes that Huffman codes are limited to a length
-  of 12 bits and that there are no more than 255 codes per length. This appears
-  to be a reasonable assumption for embedded devices, whose decompression
-  abilities are limited by the amount of RAM anyways. I have not yet determined
-  whether longer Huffman codes can appear in practice or not, and if so, under
-  which conditions.
 * zlib-deflate-nostdlib does not yet support compressed items consisting of
   more than one deflate block. I intend to fix this.
 

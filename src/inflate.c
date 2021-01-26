@@ -88,18 +88,9 @@ uint8_t deflate_hc_lengths[19];
 
 /*
  * Code lengths of the literal/length and distance alphabets.
+ * up to 286 literal/length codes + up to 32 distance codes.
  */
 uint8_t deflate_lld_lengths[318];
-
-/*
- * Assumptions:
- * * huffman code length is limited to 11 bits
- * * there are no more than 255 huffman codes with the same length
- *
- * Rationale: longer huffman codes might appear when handling large data
- * sets. We don't do that; instead, we expect the uncompressed source to
- * be no more than a few kB of data.
- */
 
 /*
  * Bit length counts and next code entries for Literal/Length alphabet.
@@ -107,17 +98,23 @@ uint8_t deflate_lld_lengths[318];
  * Literal/Length alphabet. See the algorithm in RFC 1951 section 3.2.2 for
  * details.
  *
- * In deflate, these variables are also used for the huffman alphabet in
- * dynamic huffman blocks.
+ * Assumption: There are no more than 255 huffman codes with the same length.
+ * As the largest alphabet (the literal/length alphabet) contains just 288
+ * codes in total, this should be reasonable.
+ *
+ * These variables are also used for the huffman alphabet in dynamic huffman
+ * blocks.
  */
-uint8_t deflate_bl_count_ll[12];
-uint16_t deflate_next_code_ll[12];
+uint8_t deflate_bl_count_ll[16];
+uint16_t deflate_next_code_ll[16];
 
 /*
- * Bit length counts and next code entries for Distance alphabet.
+ * Bit length counts and next code entries for Distance alphabet. Note that,
+ * even though there are just 30 different distance codes, individual
+ * codes may be up to 16 bits long.
  */
-uint8_t deflate_bl_count_d[12];
-uint16_t deflate_next_code_d[12];
+uint8_t deflate_bl_count_d[16];
+uint16_t deflate_next_code_d[16];
 
 static uint16_t deflate_rev_word(uint16_t word, uint8_t bits)
 {
@@ -168,7 +165,7 @@ static void deflate_build_alphabet(uint8_t * lengths, uint16_t size,
 	uint16_t i;
 	uint16_t code = 0;
 	uint16_t max_len = 0;
-	for (i = 0; i < 12; i++) {
+	for (i = 0; i < 16; i++) {
 		bl_count[i] = 0;
 	}
 
@@ -191,7 +188,7 @@ static uint16_t deflate_huff(uint8_t * lengths, uint16_t size,
 			     uint8_t * bl_count, uint16_t * next_code)
 {
 	uint16_t next_word = deflate_get_word();
-	for (uint8_t num_bits = 1; num_bits < 12; num_bits++) {
+	for (uint8_t num_bits = 1; num_bits < 16; num_bits++) {
 		uint16_t next_bits = deflate_rev_word(next_word, num_bits);
 		if (bl_count[num_bits] && next_bits >= next_code[num_bits]
 		    && next_bits < next_code[num_bits] + bl_count[num_bits]) {
