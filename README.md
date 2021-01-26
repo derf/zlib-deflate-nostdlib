@@ -87,16 +87,20 @@ checksum in `inflate_zlib`.
 
 ## Compliance
 
-The code *almost* complies with RFC 1950 (decompression only), with the
-following exceptions.
+`inflate` is fully compliant with RFC 1951 for data with a decompressed size
+of up to 65 kB.
 
-* Unless compiled with `-DDEFLATE_CHECKSUM`, zlib-deflate-nostdlib does not
-  verify the ADLER32 checksum embedded into zlib-compressed data.
+When compiled with `-DDEFLATE_CHECKSUM`, `inflate_zlib` is fully compliant with
+RFC 1950 (decompression only) for data with a decompressed size of up to 65 kB.
+By default (without `-DDEFLATE_CHECKSUM`), it does not verify the ADLER32
+checksum embedded into zlib-compressed data and is therefore not compliant with
+RFC 1950.
 
-The code *almost* complies with RFC 1951, with the following exceptions.
-
-* zlib-deflate-nostdlib does not yet support compressed items consisting of
-  more than one deflate block. I intend to fix this.
+For files larger than 65 kB, you only need to change some size arguments to
+`uint32_t`. However, if you are decompressing files of that size, you probably
+have more RAM than this library is designed for. In that case, you may be
+better off with [udeflate](https://github.com/jlublin/udeflate),
+[uzlib](https://github.com/pfalcon/uzlib), or similar.
 
 ## Requirements and Performance
 

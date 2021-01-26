@@ -16,6 +16,7 @@
 #define DEFLATE_ERR_OUTPUT_LENGTH (-6)
 #define DEFLATE_ERR_FCHECK (-7)
 #define DEFLATE_ERR_NLEN (-8)
+#define DEFLATE_ERR_HUFFMAN (-9)
 
 int16_t inflate(unsigned char *input_buf, uint16_t input_len,
 		unsigned char *output_buf, uint16_t output_len);
