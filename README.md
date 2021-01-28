@@ -112,7 +112,7 @@ see the tables below. ROM/RAM values are rounded up to the next mupltiple of
 ### default (no checksum verification)
 
 | Architecture | ROM | RAM |
-| :--- | ---: | ---: | ---: |
+| :--- | ---: | ---: |
 | 8-bit ATMega328P | 1824 B | 640 B |
 | 16-bit MSP430FR5994 | 2272 B | 448 B |
 | 20-bit MSP430FR5994 | 2576 B | 464 B |
@@ -122,7 +122,7 @@ see the tables below. ROM/RAM values are rounded up to the next mupltiple of
 ### compliant mode (-DDEFLATE\_CHECKSUM)
 
 | Architecture | ROM | RAM |
-| :--- | ---: | ---: | ---: |
+| :--- | ---: | ---: |
 | 8-bit ATMega328P | 2032 B | 640 B |
 | 16-bit MSP430FR5994 | 2560 B | 448 B |
 | 20-bit MSP430FR5994 | 2896 B | 464 B |
