@@ -54,7 +54,7 @@ unsigned char inflate_output[128];
 
 ```
 
-Decompressing deflate (RFC 1951) data works as follows:
+Example for deflate (RFC 1951) decompression:
 
 ```
 #include "inflate.h"
@@ -102,16 +102,44 @@ have more RAM than this library is designed for. In that case, you may be
 better off with [udeflate](https://github.com/jlublin/udeflate),
 [uzlib](https://github.com/pfalcon/uzlib), or similar.
 
-## Requirements and Performance
+## Memory Requirements
 
-RAM usage excludes the space needed for input and output buffer. ROM/RAM usage
-rounded up to the next multiple of 16B. Performance tested with text files of
-various sizes, minimum file size 500 bytes, maximum file size determined by the
-amount of available RAM.
+Excluding the decompressed data buffer, zlib-deflate-nostdlib needs about
+2.5 kB of ROM and 500 Bytes of RAM. Actual values depend on the architecture,
+see the tables below. ROM/RAM values are rounded up to the next mupltiple of
+16B.
 
-| Architecture | ROM | RAM | Speed
+### default (no checksum verification)
+
+| Architecture | ROM | RAM |
 | :--- | ---: | ---: | ---: |
-| 8-bit ATMega328P @ 16 MHz | 1440 B | 624 B | 10 .. 22 kB/s |
-| 16-bit MSP430FR5994 @ 16 MHz | 2224 B | 432 B | 8 .. 16 kB/s |
-| 20-bit MSP430FR5994 @ 16 MHz | 2512 B | 432 B | 8 .. 16 kB/s |
-| 32-bit STM32F446RE (ARM Cortex M3) @ 168 MHz | 1552 B | 432 B | 258 .. 898 kB/s |
+| 8-bit ATMega328P | 1824 B | 640 B |
+| 16-bit MSP430FR5994 | 2272 B | 448 B |
+| 20-bit MSP430FR5994 | 2576 B | 464 B |
+| 32-bit ESP8266 | 1888 B | 656 B |
+| 32-bit STM32F446RE (ARM Cortex M3) | 1600 B | 464 B |
+
+### compliant mode (-DDEFLATE\_CHECKSUM)
+
+| Architecture | ROM | RAM |
+| :--- | ---: | ---: | ---: |
+| 8-bit ATMega328P | 2032 B | 640 B |
+| 16-bit MSP430FR5994 | 2560 B | 448 B |
+| 20-bit MSP430FR5994 | 2896 B | 464 B |
+| 32-bit ESP8266 | 2048 B | 656 B |
+| 32-bit STM32F446RE (ARM Cortex M3) | 1782 B | 464 B |
+
+## Performance
+
+Due to its focus on low RAM usage, zlib-deflate-nostdlib is very slow. Expect
+about 1kB/s per MHz on 16-bit and 2kB/s per MHz on 32-bit architectures. Tested
+with text files of various sizes, minimum file size 500 bytes, maximum file
+size determined by the amount of available RAM.
+
+| Architecture | Speed @ 1 MHz | Speed | CPU Clock |
+| :--- | ---: | ---: | ---: |
+| 8-bit ATMega328P | 1 kB/s | 10 .. 22 kB/s | 16 MHz |
+| 16-bit MSP430FR5994 | 1 kB/s | 8..15 kB/s | 16 MHz |
+| 20-bit MSP430FR5994 | 1 kB/s | 8..17 kB/s | 16 MHz |
+| 32-bit ESP8266 | 1 .. 3 kB/s | 79..246 kB/s | 80 MHz |
+| 32-bit STM32F446RE (ARM Cortex M3) | 1 .. 5 kB/s | 282..875 kB/s | 168 MHz |
