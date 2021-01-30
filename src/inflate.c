@@ -88,7 +88,7 @@ uint8_t deflate_hc_lengths[19];
 
 /*
  * Code lengths of the literal/length and distance alphabets.
- * up to 286 literal/length codes + up to 32 distance codes.
+ * up to 288 literal/length codes + up to 30 distance codes.
  */
 uint8_t deflate_lld_lengths[318];
 
@@ -306,19 +306,19 @@ static int8_t deflate_static_huffman()
 	for (i = 256; i <= 279; i++) {
 		deflate_lld_lengths[i] = 7;
 	}
-	for (i = 280; i <= 285; i++) {
+	for (i = 280; i <= 287; i++) {
 		deflate_lld_lengths[i] = 8;
 	}
-	for (i = 286; i <= 286 + 29; i++) {
+	for (i = 288; i <= 288 + 29; i++) {
 		deflate_lld_lengths[i] = 5;
 	}
 
-	deflate_build_alphabet(deflate_lld_lengths, 286, deflate_bl_count_ll,
+	deflate_build_alphabet(deflate_lld_lengths, 288, deflate_bl_count_ll,
 			       deflate_next_code_ll);
-	deflate_build_alphabet(deflate_lld_lengths + 286, 29,
+	deflate_build_alphabet(deflate_lld_lengths + 288, 29,
 			       deflate_bl_count_d, deflate_next_code_d);
-	return deflate_huffman(deflate_lld_lengths, 286,
-			       deflate_lld_lengths + 286, 29);
+	return deflate_huffman(deflate_lld_lengths, 288,
+			       deflate_lld_lengths + 288, 29);
 }
 
 static int8_t deflate_dynamic_huffman()
