@@ -86,18 +86,19 @@ checksum in `inflate_zlib`.
 ## Compliance
 
 `inflate` is fully compliant with RFC 1951 for data with a decompressed size
-of up to 65 kB.
+of up to 32 kB.
 
 When compiled with `-DDEFLATE_CHECKSUM`, `inflate_zlib` is fully compliant with
-RFC 1950 (decompression only) for data with a decompressed size of up to 65 kB.
+RFC 1950 (decompression only) for data with a decompressed size of up to 32 kB.
 By default (without `-DDEFLATE_CHECKSUM`), it does not verify the ADLER32
 checksum embedded into zlib-compressed data and is therefore not compliant with
 RFC 1950.
 
-For files larger than 65 kB, you only need to change some size arguments to
-`uint32_t`. However, if you are decompressing files of that size, you probably
-have more RAM than this library is designed for. In that case, you may be
-better off with [udeflate](https://github.com/jlublin/udeflate),
+For files larger than 32 kB, you need to change inflate's return value to
+`int32_t` and its size arguments to `uint32_t`. However, if you are
+decompressing files of that size, you probably have more RAM than this library
+is designed for. In that case, you are probably better off with
+[udeflate](https://github.com/jlublin/udeflate),
 [uzlib](https://github.com/pfalcon/uzlib), or similar.
 
 ## Memory Requirements

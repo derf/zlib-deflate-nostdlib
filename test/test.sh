@@ -6,7 +6,7 @@ cd "$(dirname "$0")"
 
 ./compile.sh
 
-for file in $(find .. -type f -size -65000c); do
+for file in $(find .. -type f -size -32760c); do
 	if ! ./deflate $file | ./inflate > tmp; then
 		echo "inflate error at $file"
 		./deflate $file | ./inflate > tmp
