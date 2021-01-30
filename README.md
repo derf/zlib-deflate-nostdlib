@@ -1,10 +1,9 @@
 **zlib-deflate-nostdlib** provides a zlib decompressor (RFC 1950) and deflate
 reader (RFC 1951) suitable for 8- and 16-bit microcontrollers. It works
 fine on MCUs as small as ATMega328P (used, for example, in the Arduino Nano)
-and MSP430FR5994. It is compatible with both C (e.g. c99) and C++
-(e.g. c++20). Apart from type definitions for (u)int8\_t, (u)int16\_t,
-and (u)int32\_t, which are typically provided by stdint.h, it has no external
-dependencies.
+and MSP430FR5994. It is compatible with both C (from c99 on) and C++.  Apart
+from type definitions for (u)int8\_t, (u)int16\_t, and (u)int32\_t, which are
+typically provided by stdint.h, it has no external dependencies.
 
 zlib-deflate-nostdlib is focused on a low memory footprint. It is not optimized
 for speed and uses a pretty naive implementation right now.

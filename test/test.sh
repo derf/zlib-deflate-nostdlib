@@ -4,14 +4,18 @@ set -eu
 
 cd "$(dirname "$0")"
 
-./compile.sh
+for std in c++11 c++20 c99 c11; do
 
-for file in $(find .. -type f -size -32760c); do
-	if ! ./deflate $file | ./inflate > tmp; then
-		echo "inflate error at $file"
-		./deflate $file | ./inflate > tmp
-	fi
-	diff $file tmp
+	"./compile-${std}.sh"
+
+	for file in $(find .. -type f -size -32760c); do
+		if ! ./deflate $file | ./inflate > tmp; then
+			echo "inflate error at $file"
+			./deflate $file | ./inflate > tmp
+		fi
+		diff $file tmp
+	done
+
 done
 
 rm -f tmp

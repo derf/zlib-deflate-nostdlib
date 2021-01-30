@@ -9,8 +9,8 @@ unsigned char *outbuf;
 int main(void)
 {
 	// 16 MB
-	inbuf = malloc(4096 * 4096);
-	outbuf = malloc(4096 * 4096);
+	inbuf = (unsigned char*)malloc(4096 * 4096);
+	outbuf = (unsigned char*)malloc(4096 * 4096);
 
 	if (inbuf == NULL || outbuf == NULL) {
 		return 1;
