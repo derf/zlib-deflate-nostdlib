@@ -1,8 +1,8 @@
 **zlib-deflate-nostdlib** provides a zlib decompressor (RFC 1950) and deflate
 reader (RFC 1951) suitable for 8- and 16-bit microcontrollers. It works
 fine on MCUs as small as ATMega328P (used, for example, in the Arduino Nano)
-and MSP430FR5994. It is compatible with both C (tested with c99) and C++
-(tested with c++14). Apart from type definitions for (u)int8\_t, (u)int16\_t,
+and MSP430FR5994. It is compatible with both C (e.g. c99) and C++
+(e.g. c++20). Apart from type definitions for (u)int8\_t, (u)int16\_t,
 and (u)int32\_t, which are typically provided by stdint.h, it has no external
 dependencies.
 
@@ -26,21 +26,24 @@ input and output must be `unsigned char *`, input\_len and output\_len are
 expected to be unsigned 16-bit integers. Both functions return the number of
 bytes written to `output`, or a negative value on error.
 
+You can use util/deflate to compress files into C/C++ arrays, see `util/deflate
+--help`.
+
 Example for zlib decompression (RFC 1950):
 
 ```
 #include "inflate.h"
 
-unsigned char inflate_input[] = { /* some compressed data, e.g.: */
-    120, 156, 243, 72, 205, 201, 201, 215, 81, 8, 207, 47, 202, 73, 177, 87,
-    240, 64, 226, 41, 2, 0, 128, 125, 9, 17
-};
+// Hello, World? Hello, World!
+unsigned short const inflate_input_size = 26;
+unsigned char const inflate_input[] = {120, 156, 243, 72, 205, 201, 201, 215,
+    81, 8, 207, 47, 202, 73, 177, 87, 240, 64, 226, 41, 2, 0, 128, 125, 9, 17};
 
 unsigned char inflate_output[128];
 
 // within some function
 {
-    int16_t out_bytes = inflate_zlib(inflate_input, sizeof(inflate_input),
+    int16_t out_bytes = inflate_zlib(inflate_input, inflate_input_size,
                                      inflate_output, sizeof(inflate_output));
     if (out_bytes < 0) {
         // error
