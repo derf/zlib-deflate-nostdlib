@@ -105,7 +105,7 @@ is designed for. In that case, you are probably better off with
 
 Excluding the decompressed data buffer, zlib-deflate-nostdlib needs about
 2.5 kB of ROM and 500 Bytes of RAM. Actual values depend on the architecture,
-see the tables below. ROM/RAM values are rounded up to the next mupltiple of
+see the tables below. ROM/RAM values are rounded up to the next multiple of
 16B.
 
 ### default (no checksum verification)
