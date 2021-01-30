@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
 # vim:tabstop=4 softtabstop=4 shiftwidth=4 textwidth=160 smarttab expandtab colorcolumn=160
+#
+# Copyright 2021 Daniel Friesel
+#
+# SPDX-License-Identifier: BSD-2-Clause
 
 """deflate - compression utility for zlib-deflate-nostdlib
 
