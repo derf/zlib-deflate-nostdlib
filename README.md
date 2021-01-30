@@ -7,9 +7,7 @@ and (u)int32\_t, which are typically provided by stdint.h, it has no external
 dependencies.
 
 zlib-deflate-nostdlib is focused on a low memory footprint. It is not optimized
-for speed. Right now, the implementation is naive, but usable. See below for
-the current status and TODOs. Be aware that this library has not been
-extensively tested yet.
+for speed and uses a pretty naive implementation right now.
 
 Note: This library *inflates* (i.e., decompresses) data. The source files and
 API are named as such, as is the corresponding function in the original zlib
