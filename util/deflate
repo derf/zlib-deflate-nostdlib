@@ -1,0 +1,64 @@
+#!/usr/bin/env python3
+# vim:tabstop=4 softtabstop=4 shiftwidth=4 textwidth=160 smarttab expandtab colorcolumn=160
+
+"""deflate - compression utility for zlib-deflate-nostdlib
+
+deflate compresses the input file (or, if the argument is not a filename, the input string) using zlib
+and outputs the compressed data in a format suitable for C/C++ files.
+"""
+
+import argparse
+import sys
+import zlib
+
+
+def main():
+    parser = argparse.ArgumentParser(
+        formatter_class=argparse.RawDescriptionHelpFormatter, description=__doc__
+    )
+    parser.add_argument(
+        "--variable-name",
+        type=str,
+        default="inflate_input",
+        help="variable name for compressed data",
+    )
+    parser.add_argument(
+        "--data-type",
+        type=str,
+        default="unsigned char const",
+        help="variable type for compressed data",
+    )
+    parser.add_argument(
+        "--size-type",
+        type=str,
+        default="unsigned short const",
+        help="variable type for compressed data size",
+    )
+    parser.add_argument("--level", type=int, default=-1, help="zlib compression level")
+    parser.add_argument(
+        "file_or_string", type=str, help="filename or string to compress"
+    )
+    args = parser.parse_args()
+
+    try:
+        with open(args.file_or_string, "rb") as f:
+            input_data = f.read()
+    except FileNotFoundError:
+        input_data = args.file_or_string.encode("utf-8")
+
+    output = zlib.compress(input_data, args.level)
+
+    fdict = output[1] & 0x20
+    assert fdict == 0
+
+    print(f"// {args.file_or_string}")
+    print(f"{args.size_type} {args.variable_name}_size = {len(output)};")
+    print(
+        f"{args.data_type} {args.variable_name}[] = {{"
+        + ", ".join(map(str, output))
+        + "};"
+    )
+
+
+if __name__ == "__main__":
+    main()
