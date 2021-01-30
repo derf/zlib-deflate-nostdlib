@@ -1,0 +1,18 @@
+#!/usr/bin/env python3
+
+import sys
+import zlib
+
+level = -1
+if len(sys.argv) > 2:
+    level = int(sys.argv[2])
+
+try:
+	with open(sys.argv[1], "rb") as f:
+		input_data = f.read()
+except FileNotFoundError:
+	input_data = sys.argv[1].encode("utf-8")
+
+output = zlib.compress(input_data, level=level)
+
+sys.stdout.buffer.write(output)
