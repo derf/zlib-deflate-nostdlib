@@ -1,0 +1,8 @@
+image: derfnull/kratos-ci:2020.11.21
+
+stages:
+  - test
+
+run_tests:
+  stage: test
+  script: test/test.sh
