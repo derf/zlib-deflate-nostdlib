@@ -1,12 +1,14 @@
 **zlib-deflate-nostdlib** provides a zlib decompressor (RFC 1950) and deflate
-reader (RFC 1951) suitable for 8- and 16-bit microcontrollers. It works
-fine on MCUs as small as ATMega328P (used, for example, in the Arduino Nano)
-and MSP430FR5994. It is compatible with both C (from c99 on) and C++.  Apart
-from type definitions for (u)int8\_t, (u)int16\_t, and (u)int32\_t, which are
-typically provided by stdint.h, it has no external dependencies.
+reader (RFC 1951) suitable for 8- and 16-bit microcontrollers. It works fine on
+MCUs as small as ATMega328P (used, for example, in the Arduino Nano) and
+MSP430FR5994. It is compatible with both C (from c99 on) and C++.  Apart from
+type definitions for (u)int8\_t, (u)int16\_t, and (u)int32\_t, which you can
+provide yourself if stdint.h is not available, it has no external dependencies.
 
-zlib-deflate-nostdlib is focused on a low memory footprint. It is not optimized
-for speed and uses a pretty naive implementation right now.
+zlib-deflate-nostdlib is focused on a low memory footprint and not on speed.
+Depending on architecture and compilation settings, it requires **1.6 to 2.6 kB
+of ROM** and **0.5 to 1.2 kB of RAM**. Decompression speed ranges from **1 to 5
+kB/s per MHz**.  See below for details and tunables.
 
 Note: This library *inflates* (i.e., decompresses) data. The source files and
 API are named as such, as is the corresponding function in the original zlib
@@ -105,42 +107,55 @@ is designed for. In that case, you are probably better off with
 
 ## Memory Requirements
 
-Excluding the decompressed data buffer, zlib-deflate-nostdlib needs about
-2.5 kB of ROM and 500 Bytes of RAM. Actual values depend on the architecture,
-see the tables below. ROM/RAM values are rounded up to the next multiple of
-16B.
+Compilation with `-Os`. ROM/RAM values are rounded up to the next multiple of
+16B and do not include the buffer for decompressede data.
 
-### default (no checksum verification)
+### baseline (no checksum verification)
 
 | Architecture | ROM | RAM |
 | :--- | ---: | ---: |
-| 8-bit ATMega328P | 1824 B | 640 B |
-| 16-bit MSP430FR5994 | 2272 B | 448 B |
-| 20-bit MSP430FR5994 | 2576 B | 464 B |
+| 8-bit ATMega328P | 1808 B | 640 B |
+| 16-bit MSP430FR5994 | 2256 B | 448 B |
+| 20-bit MSP430FR5994 | 2560 B | 464 B |
 | 32-bit ESP8266 | 1888 B | 656 B |
-| 32-bit STM32F446RE (ARM Cortex M3) | 1600 B | 464 B |
+| 32-bit STM32F446RE (ARM Cortex M3) | 1616 B | 464 B |
 
 ### compliant mode (-DDEFLATE\_CHECKSUM)
 
+ROM = baseline + 150 to 300 B, RAM = baseline.
+
+### faster mode (-DDEFLATE\_WITH\_LUT)
+
 | Architecture | ROM | RAM |
 | :--- | ---: | ---: |
-| 8-bit ATMega328P | 2032 B | 640 B |
-| 16-bit MSP430FR5994 | 2560 B | 448 B |
-| 20-bit MSP430FR5994 | 2896 B | 464 B |
-| 32-bit ESP8266 | 2048 B | 656 B |
-| 32-bit STM32F446RE (ARM Cortex M3) | 1782 B | 464 B |
+| 8-bit ATMega328P | — | — |
+| 16-bit MSP430FR5994 | 2896 B | 1088 B |
+| 20-bit MSP430FR5994 | 3248 B | 1088 B |
+| 32-bit ESP8266 | 1856 B | 1296 B |
+| 32-bit STM32F446RE (ARM Cortex M3) | 1664 B | 1104 B |
+
 
 ## Performance
 
-Due to its focus on low RAM usage, zlib-deflate-nostdlib is very slow. Expect
-about 1kB/s per MHz on 16-bit and 2kB/s per MHz on 32-bit architectures. Tested
-with text files of various sizes, minimum file size 500 bytes, maximum file
-size determined by the amount of available RAM.
+Tested with text files of various sizes, minimum file size 500 bytes, maximum
+file size determined by the amount of available RAM.
+
+### baseline (no checksum verification)
 
 | Architecture | Speed @ 1 MHz | Speed | CPU Clock |
 | :--- | ---: | ---: | ---: |
 | 8-bit ATMega328P | 1 kB/s | 10 .. 22 kB/s | 16 MHz |
-| 16-bit MSP430FR5994 | 1 kB/s | 8..15 kB/s | 16 MHz |
-| 20-bit MSP430FR5994 | 1 kB/s | 8..17 kB/s | 16 MHz |
+| 16-bit MSP430FR5994 | 1 kB/s | 8..16 kB/s | 16 MHz |
+| 20-bit MSP430FR5994 | 1 kB/s | 8..16 kB/s | 16 MHz |
 | 32-bit ESP8266 | 1 .. 3 kB/s | 79..246 kB/s | 80 MHz |
 | 32-bit STM32F446RE (ARM Cortex M3) | 1 .. 5 kB/s | 282..875 kB/s | 168 MHz |
+
+### faster mode (-DDEFLATE\_WITH\_LUT)
+
+| Architecture | Speed @ 1 MHz | Speed | CPU Clock |
+| :--- | ---: | ---: | ---: |
+| 8-bit ATMega328P | — | — | 16 MHz |
+| 16-bit MSP430FR5994 | 2 kB/s | 22..37 kB/s | 16 MHz |
+| 20-bit MSP430FR5994 | 2 kB/s | 20..34 kB/s | 16 MHz |
+| 32-bit ESP8266 | 3 .. 8 kB/s | 234..671 kB/s | 80 MHz |
+| 32-bit STM32F446RE (ARM Cortex M3) | 6 .. 17 kB/s | 986..2815 kB/s | 168 MHz |

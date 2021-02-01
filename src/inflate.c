@@ -92,6 +92,11 @@ uint8_t deflate_hc_lengths[19];
  */
 uint8_t deflate_lld_lengths[318];
 
+#ifdef DEFLATE_WITH_LUT
+uint16_t deflate_ll_codes[288];
+uint16_t deflate_d_codes[30];
+#endif
+
 /*
  * Bit length counts and next code entries for Literal/Length alphabet.
  * Combined with the code lengths in deflate_lld_lengths, these make up the
@@ -159,8 +164,14 @@ static uint16_t deflate_get_bits(uint8_t num_bits)
 	return ret & deflate_bitmask(num_bits);
 }
 
+#ifdef DEFLATE_WITH_LUT
+static void deflate_build_alphabet(uint8_t * lengths, uint16_t size,
+				   uint8_t * bl_count, uint16_t * next_code,
+				   uint16_t * codes)
+#else
 static void deflate_build_alphabet(uint8_t * lengths, uint16_t size,
 				   uint8_t * bl_count, uint16_t * next_code)
+#endif
 {
 	uint16_t i;
 	uint16_t code = 0;
@@ -178,12 +189,28 @@ static void deflate_build_alphabet(uint8_t * lengths, uint16_t size,
 		}
 	}
 
-	for (i = 1; i < max_len + 1; i++) {
+	for (i = 1; i <= max_len; i++) {
 		code = (code + bl_count[i - 1]) << 1;
 		next_code[i] = code;
 	}
+
+#ifdef DEFLATE_WITH_LUT
+	uint8_t j = 0;
+	code = 0;
+	for (j = 1; j <= max_len; j++) {
+		for (i = 0; i < size; i++) {
+			if (lengths[i] == j) {
+				codes[code++] = i;
+			}
+		}
+	}
+#endif
 }
 
+#ifdef DEFLATE_WITH_LUT
+static uint16_t deflate_huff(uint16_t * codes,
+			     uint8_t * bl_count, uint16_t * next_code)
+#else
 /*
  * This function trades speed for low memory requirements. Instead of building
  * an actual huffman tree (at a cost of about 650 Bytes of RAM), we iterate
@@ -192,8 +219,12 @@ static void deflate_build_alphabet(uint8_t * lengths, uint16_t size,
  */
 static uint16_t deflate_huff(uint8_t * lengths, uint16_t size,
 			     uint8_t * bl_count, uint16_t * next_code)
+#endif
 {
 	uint16_t next_word = deflate_get_word();
+#ifdef DEFLATE_WITH_LUT
+	uint16_t code = 0;
+#endif
 	for (uint8_t num_bits = 1; num_bits < 16; num_bits++) {
 		uint16_t next_bits = deflate_rev_word(next_word, num_bits);
 		if (bl_count[num_bits] && next_bits >= next_code[num_bits]
@@ -203,9 +234,11 @@ static uint16_t deflate_huff(uint8_t * lengths, uint16_t size,
 				deflate_input_now++;
 				deflate_bit_offset -= 8;
 			}
+#ifdef DEFLATE_WITH_LUT
+			return codes[code + (next_bits - next_code[num_bits])];
+#else
 			uint8_t len_pos = next_bits;
 			uint8_t cur_pos = next_code[num_bits];
-			// This is slow, but memory-efficient
 			for (uint16_t i = 0; i < size; i++) {
 				if (lengths[i] == num_bits) {
 					if (cur_pos == len_pos) {
@@ -214,20 +247,35 @@ static uint16_t deflate_huff(uint8_t * lengths, uint16_t size,
 					cur_pos++;
 				}
 			}
+#endif
+		} else {
+#ifdef DEFLATE_WITH_LUT
+			code += bl_count[num_bits];
+#endif
 		}
 	}
 	return 65535;
 }
 
+#ifdef DEFLATE_WITH_LUT
+static int8_t deflate_huffman(uint16_t * ll_codes, uint16_t * d_codes)
+#else
 static int8_t deflate_huffman(uint8_t * ll_lengths, uint16_t ll_size,
 			      uint8_t * d_lengths, uint8_t d_size)
+#endif
 {
 	uint16_t code;
 	uint16_t dcode;
 	while (1) {
+#ifdef DEFLATE_WITH_LUT
+		code =
+		    deflate_huff(ll_codes, deflate_bl_count_ll,
+				 deflate_next_code_ll);
+#else
 		code =
 		    deflate_huff(ll_lengths, ll_size, deflate_bl_count_ll,
 				 deflate_next_code_ll);
+#endif
 		if (code < 256) {
 			if (deflate_output_now == deflate_output_end) {
 				return DEFLATE_ERR_OUTPUT_LENGTH;
@@ -244,10 +292,17 @@ static int8_t deflate_huffman(uint8_t * ll_lengths, uint16_t ll_size,
 			if (extra_bits) {
 				len_val += deflate_get_bits(extra_bits);
 			}
+#ifdef DEFLATE_WITH_LUT
+			dcode =
+			    deflate_huff(d_codes,
+					 deflate_bl_count_d,
+					 deflate_next_code_d);
+#else
 			dcode =
 			    deflate_huff(d_lengths, d_size,
 					 deflate_bl_count_d,
 					 deflate_next_code_d);
+#endif
 			uint16_t dist_val = deflate_distance_offsets[dcode];
 			extra_bits = deflate_distance_bits[dcode];
 			if (extra_bits) {
@@ -313,12 +368,21 @@ static int8_t deflate_static_huffman()
 		deflate_lld_lengths[i] = 5;
 	}
 
+#ifdef DEFLATE_WITH_LUT
+	deflate_build_alphabet(deflate_lld_lengths, 288, deflate_bl_count_ll,
+			       deflate_next_code_ll, deflate_ll_codes);
+	deflate_build_alphabet(deflate_lld_lengths + 288, 29,
+			       deflate_bl_count_d, deflate_next_code_d,
+			       deflate_d_codes);
+	return deflate_huffman(deflate_ll_codes, deflate_d_codes);
+#else
 	deflate_build_alphabet(deflate_lld_lengths, 288, deflate_bl_count_ll,
 			       deflate_next_code_ll);
 	deflate_build_alphabet(deflate_lld_lengths + 288, 29,
 			       deflate_bl_count_d, deflate_next_code_d);
 	return deflate_huffman(deflate_lld_lengths, 288,
 			       deflate_lld_lengths + 288, 29);
+#endif
 }
 
 static int8_t deflate_dynamic_huffman()
@@ -336,16 +400,29 @@ static int8_t deflate_dynamic_huffman()
 		deflate_hc_lengths[deflate_hclen_index[i]] = 0;
 	}
 
+#ifdef DEFLATE_WITH_LUT
+	deflate_build_alphabet(deflate_hc_lengths,
+			       sizeof(deflate_hc_lengths),
+			       deflate_bl_count_ll, deflate_next_code_ll,
+			       deflate_ll_codes);
+#else
 	deflate_build_alphabet(deflate_hc_lengths,
 			       sizeof(deflate_hc_lengths),
 			       deflate_bl_count_ll, deflate_next_code_ll);
+#endif
 
 	uint16_t items_processed = 0;
 	while (items_processed < hlit + hdist) {
+#ifdef DEFLATE_WITH_LUT
+		uint8_t code = deflate_huff(deflate_ll_codes,
+					    deflate_bl_count_ll,
+					    deflate_next_code_ll);
+#else
 		uint8_t code =
 		    deflate_huff(deflate_hc_lengths, sizeof(deflate_hc_lengths),
 				 deflate_bl_count_ll,
 				 deflate_next_code_ll);
+#endif
 		if (code == 16) {
 			uint8_t copy_count = 3 + deflate_get_bits(2);
 			for (uint8_t i = 0; i < copy_count; i++) {
@@ -371,13 +448,22 @@ static int8_t deflate_dynamic_huffman()
 		}
 	}
 
+#ifdef DEFLATE_WITH_LUT
+	deflate_build_alphabet(deflate_lld_lengths, hlit,
+			       deflate_bl_count_ll, deflate_next_code_ll,
+			       deflate_ll_codes);
+	deflate_build_alphabet(deflate_lld_lengths + hlit, hdist,
+			       deflate_bl_count_d, deflate_next_code_d,
+			       deflate_d_codes);
+	return deflate_huffman(deflate_ll_codes, deflate_d_codes);
+#else
 	deflate_build_alphabet(deflate_lld_lengths, hlit,
 			       deflate_bl_count_ll, deflate_next_code_ll);
 	deflate_build_alphabet(deflate_lld_lengths + hlit, hdist,
 			       deflate_bl_count_d, deflate_next_code_d);
-
 	return deflate_huffman(deflate_lld_lengths, hlit,
 			       deflate_lld_lengths + hlit, hdist);
+#endif
 }
 
 int16_t inflate(unsigned char *input_buf, uint16_t input_len,
