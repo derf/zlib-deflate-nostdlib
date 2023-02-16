@@ -11,8 +11,8 @@
 /*
  * The compressed (inflated) input data.
  */
-unsigned char *deflate_input_now;
-unsigned char *deflate_input_end;
+const unsigned char *deflate_input_now;
+const unsigned char *deflate_input_end;
 
 /*
  * The decompressed (deflated) output stream.
@@ -387,16 +387,15 @@ static int8_t deflate_static_huffman()
 
 static int8_t deflate_dynamic_huffman()
 {
-	uint8_t i;
 	uint16_t hlit = 257 + deflate_get_bits(5);
 	uint8_t hdist = 1 + deflate_get_bits(5);
 	uint8_t hclen = 4 + deflate_get_bits(4);
 
-	for (i = 0; i < hclen; i++) {
+	for (uint8_t i = 0; i < hclen; i++) {
 		deflate_hc_lengths[deflate_hclen_index[i]] =
 		    deflate_get_bits(3);
 	}
-	for (i = hclen; i < sizeof(deflate_hc_lengths); i++) {
+	for (uint8_t i = hclen; i < sizeof(deflate_hc_lengths); i++) {
 		deflate_hc_lengths[deflate_hclen_index[i]] = 0;
 	}
 
@@ -466,7 +465,7 @@ static int8_t deflate_dynamic_huffman()
 #endif
 }
 
-int16_t inflate(unsigned char *input_buf, uint16_t input_len,
+int16_t inflate(const unsigned char *input_buf, uint16_t input_len,
 		unsigned char *output_buf, uint16_t output_len)
 {
 	deflate_input_now = input_buf;
@@ -507,7 +506,7 @@ int16_t inflate(unsigned char *input_buf, uint16_t input_len,
 	}
 }
 
-int16_t inflate_zlib(unsigned char *input_buf, uint16_t input_len,
+int16_t inflate_zlib(const unsigned char *input_buf, uint16_t input_len,
 		     unsigned char *output_buf, uint16_t output_len)
 {
 	if (input_len < 4) {
