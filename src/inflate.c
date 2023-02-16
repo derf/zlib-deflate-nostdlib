@@ -387,16 +387,15 @@ static int8_t deflate_static_huffman()
 
 static int8_t deflate_dynamic_huffman()
 {
-	uint8_t i;
 	uint16_t hlit = 257 + deflate_get_bits(5);
 	uint8_t hdist = 1 + deflate_get_bits(5);
 	uint8_t hclen = 4 + deflate_get_bits(4);
 
-	for (i = 0; i < hclen; i++) {
+	for (uint8_t i = 0; i < hclen; i++) {
 		deflate_hc_lengths[deflate_hclen_index[i]] =
 		    deflate_get_bits(3);
 	}
-	for (i = hclen; i < sizeof(deflate_hc_lengths); i++) {
+	for (uint8_t i = hclen; i < sizeof(deflate_hc_lengths); i++) {
 		deflate_hc_lengths[deflate_hclen_index[i]] = 0;
 	}
 
