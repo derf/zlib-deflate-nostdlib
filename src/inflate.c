@@ -8,17 +8,25 @@
 
 #include "inflate.h"
 
+#include <stddef.h>
+
 /*
  * The compressed (inflated) input data.
  */
-const unsigned char *deflate_input_now;
-const unsigned char *deflate_input_end;
-
+static const unsigned char *deflate_input_now;
+static const unsigned char *deflate_input_end;
 /*
  * The decompressed (deflated) output stream.
  */
-unsigned char *deflate_output_now;
-unsigned char *deflate_output_end;
+static unsigned char *deflate_output_start;
+static unsigned char *deflate_output_now;
+static unsigned char *deflate_output_end;
+
+/*
+ * The dictionary input data
+ */
+static const unsigned char *dict_input;
+static const unsigned char *dict_input_end;
 
 /*
  * The current bit offset in the input stream, if any.
@@ -312,8 +320,14 @@ static int8_t deflate_huffman(uint8_t * ll_lengths, uint16_t ll_size,
 				if (deflate_output_now == deflate_output_end) {
 					return DEFLATE_ERR_OUTPUT_LENGTH;
 				}
-				deflate_output_now[0] =
-				    *(deflate_output_now - dist_val);
+				if (deflate_output_now - dist_val < deflate_output_start) {
+			        // figure out how far back to read in the dictionary
+					ptrdiff_t dist_from_end_of_dict = dist_val - (deflate_output_now - deflate_output_start);
+					deflate_output_now[0] = *(dict_input_end - dist_from_end_of_dict);
+				} else {
+					deflate_output_now[0] =
+						*(deflate_output_now - dist_val);
+				}
 				deflate_output_now++;
 			}
 		}
@@ -466,12 +480,18 @@ static int8_t deflate_dynamic_huffman()
 }
 
 int16_t inflate(const unsigned char *input_buf, uint16_t input_len,
-		unsigned char *output_buf, uint16_t output_len)
+		unsigned char *output_buf, uint16_t output_len,
+                const unsigned char *dict_buf, uint16_t dict_len)
 {
 	deflate_input_now = input_buf;
 	deflate_input_end = input_buf + input_len;
+	if (dict_buf) {
+		dict_input = dict_buf;
+		dict_input_end = dict_buf + dict_len;
+	}
 	deflate_bit_offset = 0;
 
+	deflate_output_start = output_buf;
 	deflate_output_now = output_buf;
 	deflate_output_end = output_buf + output_len;
 
@@ -506,8 +526,34 @@ int16_t inflate(const unsigned char *input_buf, uint16_t input_len,
 	}
 }
 
+// Returns 1 if Adler32(data[0:len]) == adler32[0:3], 0 otherwise
+static int16_t adler32(const unsigned char *data, const unsigned char *end, const unsigned char *adler32_val) {
+	uint16_t deflate_s1 = 1;
+	uint16_t deflate_s2 = 0;
+
+	for (; data < end; data++) {
+		deflate_s1 =
+		    ((uint32_t) deflate_s1 +
+		     (uint32_t) (*data)) % 65521;
+		deflate_s2 =
+		    ((uint32_t) deflate_s2 +
+		     (uint32_t) deflate_s1) % 65521;
+	}
+
+	if ((deflate_s2 !=
+	     (((uint16_t) adler32_val[0] << 8) | (uint16_t)
+	      adler32_val[1]))
+	    || (deflate_s1 !=
+		(((uint16_t) adler32_val[2] << 8) | (uint16_t)
+		 adler32_val[3]))) {
+		return 0;
+	}
+	return 1;
+}
+
 int16_t inflate_zlib(const unsigned char *input_buf, uint16_t input_len,
-		     unsigned char *output_buf, uint16_t output_len)
+		     unsigned char *output_buf, uint16_t output_len,
+                     const unsigned char *dict, uint16_t dict_len)
 {
 	if (input_len < 4) {
 		return DEFLATE_ERR_INPUT_LENGTH;
@@ -519,8 +565,17 @@ int16_t inflate_zlib(const unsigned char *input_buf, uint16_t input_len,
 		return DEFLATE_ERR_METHOD;
 	}
 
+	uint32_t data_offset = 2;
 	if (zlib_flags & 0x20) {
-		return DEFLATE_ERR_FDICT;
+		if (!dict || dict_len == 0) {
+			return DEFLATE_ERR_FDICT;
+		}
+#ifdef DEFLATE_CHECKSUM
+		if (!adler32(dict, dict + dict_len, input_buf + 2)) {
+			return DEFLATE_ERR_CHECKSUM - 10;
+		}
+#endif
+		data_offset += 4;
 	}
 
 	if ((((uint16_t) input_buf[0] << 8) | input_buf[1]) % 31) {
@@ -528,38 +583,20 @@ int16_t inflate_zlib(const unsigned char *input_buf, uint16_t input_len,
 	}
 
 	int16_t ret =
-	    inflate(input_buf + 2, input_len - 2, output_buf, output_len);
+	    inflate(input_buf + data_offset, input_len - data_offset,
+			    output_buf, output_len, dict, dict_len);
 
 #ifdef DEFLATE_CHECKSUM
 	if (ret >= 0) {
-		uint16_t deflate_s1 = 1;
-		uint16_t deflate_s2 = 0;
-
-		deflate_output_end = deflate_output_now;
-		for (deflate_output_now = output_buf;
-		     deflate_output_now < deflate_output_end;
-		     deflate_output_now++) {
-			deflate_s1 =
-			    ((uint32_t) deflate_s1 +
-			     (uint32_t) (*deflate_output_now)) % 65521;
-			deflate_s2 =
-			    ((uint32_t) deflate_s2 +
-			     (uint32_t) deflate_s1) % 65521;
-		}
-
 		if (deflate_bit_offset) {
 			deflate_input_now++;
 		}
-
-		if ((deflate_s2 !=
-		     (((uint16_t) deflate_input_now[0] << 8) | (uint16_t)
-		      deflate_input_now[1]))
-		    || (deflate_s1 !=
-			(((uint16_t) deflate_input_now[2] << 8) | (uint16_t)
-			 deflate_input_now[3]))) {
+		if (!adler32(output_buf, deflate_output_now, deflate_input_now)) {
 			return DEFLATE_ERR_CHECKSUM;
 		}
 	}
+#else
+	(void) adler32;
 #endif
 
 	return ret;

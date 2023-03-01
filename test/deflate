@@ -7,12 +7,23 @@ level = -1
 if len(sys.argv) > 2:
     level = int(sys.argv[2])
 
-try:
-	with open(sys.argv[1], "rb") as f:
-		input_data = f.read()
-except FileNotFoundError:
-	input_data = sys.argv[1].encode("utf-8")
+use_dict = False
+if len(sys.argv) > 3:
+    use_dict = bool(int(sys.argv[3]))
 
-output = zlib.compress(input_data, level=level)
+try:
+    with open(sys.argv[1], "rb") as f:
+        input_data = f.read()
+except FileNotFoundError:
+    input_data = sys.argv[1].encode("utf-8")
+
+preset_dict = None
+if use_dict:
+    preset_dict = input_data[:len(input_data) // 2]
+    compressor = zlib.compressobj(level=level, zdict=preset_dict)
+    output = compressor.compress(input_data)
+    output += compressor.flush()
+else:
+    output = zlib.compress(input_data, level=level)
 
 sys.stdout.buffer.write(output)
