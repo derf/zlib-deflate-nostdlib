@@ -3,9 +3,19 @@
 
 #include "inflate.h"
 
+static int read_til_eof(unsigned char* into, size_t len, FILE* f) {
+  int bytes_read = 0;
+  while (!feof(f) && !ferror(f)) {
+    bytes_read += fread(into, 1, len - bytes_read, f);
+  }
+  if (ferror(f)) {
+    bytes_read = 0;
+  }
+  return bytes_read;
+}
+
 int main(int argc, char** argv)
 {
-
 	// 16 MB
 	unsigned char *inbuf = (unsigned char*)malloc(4096 * 4096);
 	unsigned char *outbuf = (unsigned char*)malloc(4096 * 4096);
@@ -22,7 +32,7 @@ int main(int argc, char** argv)
           if (!dict_buf || !dict_file) {
             return 1;
           }
-          dict_size = fread(dict_buf, 1, 4096 * 4096, dict_file);
+          dict_size = read_til_eof(dict_buf, 4096 * 4096, dict_file);
           if (dict_size <= 0) {
             return 1;
           }
@@ -30,7 +40,7 @@ int main(int argc, char** argv)
           fclose(dict_file);
         }
 
-	size_t in_size = fread(inbuf, 1, 4096 * 4096, stdin);
+	size_t in_size = read_til_eof(inbuf, 4096 * 4096, stdin);
 
 	if (in_size == 0) {
 		return 1;

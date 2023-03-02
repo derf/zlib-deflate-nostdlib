@@ -378,24 +378,24 @@ static int8_t deflate_static_huffman()
 	for (i = 280; i <= 287; i++) {
 		deflate_lld_lengths[i] = 8;
 	}
-	for (i = 288; i <= 288 + 29; i++) {
+	for (i = 288; i < 288 + 30; i++) {
 		deflate_lld_lengths[i] = 5;
 	}
 
 #ifdef DEFLATE_WITH_LUT
 	deflate_build_alphabet(deflate_lld_lengths, 288, deflate_bl_count_ll,
 			       deflate_next_code_ll, deflate_ll_codes);
-	deflate_build_alphabet(deflate_lld_lengths + 288, 29,
+	deflate_build_alphabet(deflate_lld_lengths + 288, 30,
 			       deflate_bl_count_d, deflate_next_code_d,
 			       deflate_d_codes);
 	return deflate_huffman(deflate_ll_codes, deflate_d_codes);
 #else
 	deflate_build_alphabet(deflate_lld_lengths, 288, deflate_bl_count_ll,
 			       deflate_next_code_ll);
-	deflate_build_alphabet(deflate_lld_lengths + 288, 29,
+	deflate_build_alphabet(deflate_lld_lengths + 288, 30,
 			       deflate_bl_count_d, deflate_next_code_d);
 	return deflate_huffman(deflate_lld_lengths, 288,
-			       deflate_lld_lengths + 288, 29);
+			       deflate_lld_lengths + 288, 30);
 #endif
 }
 
