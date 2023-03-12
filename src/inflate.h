@@ -18,7 +18,9 @@
 #define DEFLATE_ERR_NLEN (-8)
 #define DEFLATE_ERR_HUFFMAN (-9)
 
-int16_t inflate(unsigned char *input_buf, uint16_t input_len,
-		unsigned char *output_buf, uint16_t output_len);
-int16_t inflate_zlib(unsigned char *input_buf, uint16_t input_len,
-		     unsigned char *output_buf, uint16_t output_len);
+int16_t inflate(const unsigned char *input_buf, uint16_t input_len,
+		unsigned char *output_buf, uint16_t output_len,
+                const unsigned char *dict_buf, uint16_t dict_len);
+int16_t inflate_zlib(const unsigned char *input_buf, uint16_t input_len,
+		     unsigned char *output_buf, uint16_t output_len,
+                     const unsigned char *dict_buf, uint16_t dict_len);
