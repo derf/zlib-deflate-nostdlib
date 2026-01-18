@@ -159,3 +159,11 @@ file size determined by the amount of available RAM.
 | 20-bit MSP430FR5994 | 2 kB/s | 20..34 kB/s | 16 MHz |
 | 32-bit ESP8266 | 3 .. 8 kB/s | 234..671 kB/s | 80 MHz |
 | 32-bit STM32F446RE (ARM Cortex M3) | 6 .. 17 kB/s | 986..2815 kB/s | 168 MHz |
+
+## References
+
+Mirrors of the zlib-deflate-nostdlib repository are available at:
+
+* [Chaosdorf](https://chaosdorf.de/git/derf/zlib-deflate-nostdlib)
+* [Finalrewind](https://git.finalrewind.org/derf/zlib-deflate-nostdlib)
+* [GitHub](https://github.com/derf/zlib-deflate-nostdlib)
