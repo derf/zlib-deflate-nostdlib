@@ -164,6 +164,6 @@ file size determined by the amount of available RAM.
 
 Mirrors of the zlib-deflate-nostdlib repository are available at:
 
-* [Chaosdorf](https://chaosdorf.de/git/derf/zlib-deflate-nostdlib)
+* [ESS](https://ess.cs.uos.de/git/bkf/zlib-deflate-nostdlib)
 * [Finalrewind](https://git.finalrewind.org/derf/zlib-deflate-nostdlib)
 * [GitHub](https://github.com/derf/zlib-deflate-nostdlib)
